@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.omg.CORBA.DynAnyPackage.InvalidValue;
+
 public class BMI {
 
 	private static Map<String, Range> bmiTable = new HashMap<String, Range>();
@@ -62,16 +64,20 @@ public class BMI {
 
 	}
 
-	public static String calculateBMI(double height, double weight) {
-		double bmi = weight / Math.pow(height, 2);
-		return getResults(bmi) + "! Your BMI value is: " + df.format(bmi) + "kg/m^2";
+	public static String calculateBMI(double height, double weight) throws InvalidValue {
+		if (validateValue(height) && validateValue(weight)) {
+			double bmi = weight / Math.pow(height, 2);
+			return getResults(bmi) + "! Your BMI value is: " + df.format(bmi) + "kg/m^2";
+		}else throw new InvalidValue("Value must be positive");
+	}
+
+	private static boolean validateValue(double value) {
+		return value >0;
 	}
 
 	/**
-	 * 
 	 * Method waiting for two parameters height, weight and returning with BMI
 	 * number.
-	 * 
 	 * @throws IllegalArgumentException
 	 */
 
@@ -93,8 +99,8 @@ public class BMI {
 	/**
 	 * Get a raw data from user which contain value and unit, this method split this
 	 * values, and convert this values to metric values
-	 * 
 	 * @return metric value
+	 * @throws IllegalArgumentException
 	 */
 	private static double getValue(String rawValue, Map<String, Double> convert) {
 		String unit = ""; // store the unit
@@ -126,7 +132,7 @@ public class BMI {
 			if (actual.getValue().contains(bmi))
 				return actual.getKey();
 		}
-		return null;
+		throw new UnknownError();
 	}
 
 	/**
