@@ -1,23 +1,23 @@
-package com.epam.javawebinarium.hnorbert90.bmi;
+package com.epam.javawebinar.hnorbert90.bodymassindex;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BMI {
+public class BodyMassIndex {
 
-    private static Map<String, Range> bmiTable = new HashMap<String, Range>();
+    private static Map<String, Range> bodyMassIndexTable = new HashMap<String, Range>();
     private static Map<String, Double> convertToMeters = new HashMap<String, Double>();
     private static Map<String, Double> convertToKilograms = new HashMap<String, Double>();
     static {
-        bmiTable.put("Severe Thinness", new Range(0, 16));
-        bmiTable.put("Moderate Thinness", new Range(16, 17));
-        bmiTable.put("Mild Thinness", new Range(17, 18.5));
-        bmiTable.put("Normal", new Range(18.5, 25));
-        bmiTable.put("Overweight", new Range(25, 30));
-        bmiTable.put("Obese Class I", new Range(30, 35));
-        bmiTable.put("Obese Class II", new Range(35, 40));
-        bmiTable.put("Obese Class III", new Range(40, Double.MAX_VALUE));
+        bodyMassIndexTable.put("Severe Thinness", new Range(0, 16));
+        bodyMassIndexTable.put("Moderate Thinness", new Range(16, 17));
+        bodyMassIndexTable.put("Mild Thinness", new Range(17, 18.5));
+        bodyMassIndexTable.put("Normal", new Range(18.5, 25));
+        bodyMassIndexTable.put("Overweight", new Range(25, 30));
+        bodyMassIndexTable.put("Obese Class I", new Range(30, 35));
+        bodyMassIndexTable.put("Obese Class II", new Range(35, 40));
+        bodyMassIndexTable.put("Obese Class III", new Range(40, Double.MAX_VALUE));
 
         convertToMeters.put("cm", 0.01);
         convertToMeters.put("centimeter", 0.01);
@@ -63,20 +63,22 @@ public class BMI {
     }
 
     /**
-     * Method waiting for two parameters <b>height</b>,and <b>weight</b> and returning with BMI
+     * Method waiting for two parameters <b>height</b>,and <b>weight</b> and returning with
+     * BodyMassIndex
      * number.<br>
      * Returning unit is in <b>metric</b>
      * 
      * @param height
      * @param weight
      */
-    public static SimpleImmutableEntry<Double, String> calculateBMI(double height, double weight) {
-        double bmi = Math.abs(weight) / Math.pow(Math.abs(height), 2);
-        return new SimpleImmutableEntry<>(bmi,getResults(bmi));
+    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(double height, double weight) {
+        double bodyMassIndex = Math.abs(weight) / Math.pow(Math.abs(height), 2);
+        return new SimpleImmutableEntry<>(bodyMassIndex, getResults(bodyMassIndex));
     }
 
     /**
-     * Method waiting for two parameters <b>height</b>,and <b>weight</b> and returning with BMI
+     * Method waiting for two parameters <b>height</b>,and <b>weight</b> and returning with
+     * BodyMassIndex
      * number.
      * Acceptable units: <br>
      * <b>Lenght</b>: mm, cm, dm, m, ft, in<br>
@@ -87,13 +89,13 @@ public class BMI {
      * @param weight
      * @throws IllegalArgumentException
      */
-    public static SimpleImmutableEntry<Double, String> calculateBMI(String height, String weight) {
+    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(String height, String weight) {
         height = stringValidator(height);
         weight = stringValidator(weight);
-        double bmi = getValue(weight, convertToKilograms)
+        double bodyMassIndex = getValue(weight, convertToKilograms)
                 / Math.pow(getValue(height, convertToMeters), 2);
-        return new SimpleImmutableEntry<>(bmi,getResults(bmi));
-                
+        return new SimpleImmutableEntry<>(bodyMassIndex, getResults(bodyMassIndex));
+
     }
 
     /**
@@ -110,16 +112,19 @@ public class BMI {
      * @return metric value
      * @throws IllegalArgumentException
      */
-    private static double getValue(String rawValue, Map<String, Double> convert) {
+    private static double getValue(String rawValue, Map<String, Double> convertTable) {
         final String unit = getUnit(rawValue);
         if (unit.equals(""))
             return Double.parseDouble(rawValue);
 
-        if (convert.entrySet().stream().filter(set -> set.getKey().equals(unit)).count() != 0) {
+        if (convertTable.entrySet()
+            .stream()
+            .filter(entrySet -> entrySet.getKey().equals(unit))
+            .count() != 0) {
             return Double.parseDouble(rawValue.substring(0, getFirstCharIndex(rawValue)))
-                    * convert.entrySet()
+                    * convertTable.entrySet()
                         .stream()
-                        .filter(set -> set.getKey().equals(unit))
+                        .filter(entrySet -> entrySet.getKey().equals(unit))
                         .findFirst()
                         .get()
                         .getValue();
@@ -136,12 +141,12 @@ public class BMI {
     }
 
     /**
-     * evaluates the BMI in which interval it falls
+     * evaluates the BodyMassIndex in which interval it falls
      */
-    private static String getResults(double bmi) {
-        return bmiTable.entrySet()
+    private static String getResults(double bodyMassIndex) {
+        return bodyMassIndexTable.entrySet()
             .stream()
-            .filter(set -> set.getValue().contains(bmi))
+            .filter(set -> set.getValue().contains(bodyMassIndex))
             .findFirst()
             .get()
             .getKey();
@@ -150,9 +155,9 @@ public class BMI {
     /**
      * search for the first index which is a letter
      */
-    private static int getFirstCharIndex(String text) {
+    private static int getFirstCharIndex(String rawValue) {
         // count the numbers including the point
-        return (int) text.chars().filter(ch -> (ch > 47 && ch < 58 || ch == 46)).count();
+        return (int) rawValue.chars().filter(ch -> (ch >= '0' && ch <= '9' || ch == '.')).count();
     }
 
 }

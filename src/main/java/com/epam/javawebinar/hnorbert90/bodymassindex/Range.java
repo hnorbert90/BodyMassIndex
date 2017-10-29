@@ -1,4 +1,4 @@
-package com.epam.javawebinarium.hnorbert90.bmi;
+package com.epam.javawebinar.hnorbert90.bodymassindex;
 
 public class Range {
 	private double min;
