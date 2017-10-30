@@ -1,10 +1,13 @@
 package com.epam.javawebinar.hnorbert90.bodymassindex;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import junit.framework.TestCase;
 
-public class RangeTest extends TestCase {
+import org.junit.Test;
+
+
+public class RangeTest {
 
     Range range;
 

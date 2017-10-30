@@ -9,7 +9,12 @@ public class Range {
 		this.max = max;
 	}
 
-	public boolean contains(double value) {
+	@Override
+    public String toString() {
+        return "Range [min=" + min + ", max=" + max + "]";
+    }
+
+    public boolean contains(double value) {
 		return (value >= min && value < max);
 	}
 }

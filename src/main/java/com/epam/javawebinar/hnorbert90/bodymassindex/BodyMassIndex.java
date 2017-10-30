@@ -1,14 +1,26 @@
 package com.epam.javawebinar.hnorbert90.bodymassindex;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.OptionalDouble;
+import java.util.StringJoiner;
+import java.util.stream.Stream;
 
 public class BodyMassIndex {
 
     private static Map<String, Range> bodyMassIndexTable = new HashMap<String, Range>();
     private static Map<String, Double> convertToMeters = new HashMap<String, Double>();
     private static Map<String, Double> convertToKilograms = new HashMap<String, Double>();
+    private static Map<Range, Map<String, Range>> childGrownTableMale =
+            new HashMap<Range, Map<String, Range>>();
+    private static Map<Range, Map<String, Range>> childGrownTableFemale =
+            new HashMap<Range, Map<String, Range>>();
     static {
         bodyMassIndexTable.put("Severe Thinness", new Range(0, 16));
         bodyMassIndexTable.put("Moderate Thinness", new Range(16, 17));
@@ -60,6 +72,7 @@ public class BodyMassIndex {
         convertToKilograms.put("kilogram", 1d);
         convertToKilograms.put("kilogramms", 1d);
         convertToKilograms.put("kilograms", 1d);
+        loadChildGrownTable();
     }
 
     /**
@@ -70,10 +83,31 @@ public class BodyMassIndex {
      * 
      * @param height
      * @param weight
+     * @throws IllegalArgumentException
      */
-    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(double height, double weight) {
+    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(double height,
+            double weight) {
         double bodyMassIndex = Math.abs(weight) / Math.pow(Math.abs(height), 2);
         return new SimpleImmutableEntry<>(bodyMassIndex, getResults(bodyMassIndex));
+    }
+
+    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(double height,
+            double weight, double age, String gender) {
+        gender = filterInput(gender);
+        validateAgeAndGender(age, gender);
+        double bodyMassIndex = Math.abs(weight) / Math.pow(Math.abs(height), 2);
+        if (age > 20)
+            return new SimpleImmutableEntry<>(bodyMassIndex, getResults(bodyMassIndex));
+        else
+            return new SimpleImmutableEntry<>(bodyMassIndex,
+                    getChildBodyMassIndexResults(gender, age, bodyMassIndex));
+    }
+
+    private static void validateAgeAndGender(double age, String gender) {
+        if (!(age >= 2 && age < 120))
+            throw new IllegalArgumentException("Please provide an age between 2 and 120!");
+        if (!(gender.equals("F") || gender.equals("M")))
+            throw new IllegalArgumentException("Please provide a valid gender!");
     }
 
     /**
@@ -89,13 +123,28 @@ public class BodyMassIndex {
      * @param weight
      * @throws IllegalArgumentException
      */
-    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(String height, String weight) {
+    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(String height,
+            String weight) {
         height = stringValidator(height);
         weight = stringValidator(weight);
         double bodyMassIndex = getValue(weight, convertToKilograms)
                 / Math.pow(getValue(height, convertToMeters), 2);
         return new SimpleImmutableEntry<>(bodyMassIndex, getResults(bodyMassIndex));
+    }
 
+    public static SimpleImmutableEntry<Double, String> calculateBodyMassIndex(String height,
+            String weight, double age, String gender) {
+        height = stringValidator(height);
+        weight = stringValidator(weight);
+        gender = filterInput(gender);
+        validateAgeAndGender(age, gender);
+        double bodyMassIndex = getValue(weight, convertToKilograms)
+                / Math.pow(getValue(height, convertToMeters), 2);
+        if (age > 20)
+            return new SimpleImmutableEntry<>(bodyMassIndex, getResults(bodyMassIndex));
+        else
+            return new SimpleImmutableEntry<>(bodyMassIndex,
+                    getChildBodyMassIndexResults(gender, age, bodyMassIndex));
     }
 
     /**
@@ -103,6 +152,14 @@ public class BodyMassIndex {
      */
     private static String stringValidator(String value) {
         return value.replace(",", ".").toLowerCase().replaceAll("[^a-z&&[^0-9&&[^.]]]", "");
+    }
+
+    private static String filterInput(String gender) {
+        try {
+            return gender.toUpperCase().replaceAll("[^F&&[^M]]", "").substring(0, 1);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Please provide a valid gender!");
+        }
     }
 
     /**
@@ -158,6 +215,67 @@ public class BodyMassIndex {
     private static int getFirstCharIndex(String rawValue) {
         // count the numbers including the point
         return (int) rawValue.chars().filter(ch -> (ch >= '0' && ch <= '9' || ch == '.')).count();
+    }
+
+    private static void loadChildGrownTable() {
+        String fileName = "data/CDC_data.csv";
+        Map<Range, Map<String, Range>> actualTable;
+
+        try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
+            Object[] table = stream.filter(a -> a.contains("<td>"))
+                .map(a -> a.replaceAll("[^0-9&&[^.&&[^F&&[^M]]]]", ""))
+                .toArray();
+            HashMap<String, Range> cache = new HashMap<String, Range>();
+            // reading starts from 2 year old
+            for (int i = 50 * 30; i < table.length - 30; i += 30) {
+                cache = new HashMap<String, Range>();
+                actualTable = table[i].equals("F") ? childGrownTableFemale : childGrownTableMale;
+                cache.put("Underweight",
+                        new Range(0, OptionalDouble.of(Double.parseDouble((String) table[i + 21]))
+                            .getAsDouble()));
+                cache.put("Healthy weight",
+                        new Range(
+                                OptionalDouble.of(Double.parseDouble((String) table[i + 21]))
+                                    .getAsDouble(),
+                                OptionalDouble.of(Double.parseDouble((String) table[i + 26]))
+                                    .getAsDouble()));
+                cache.put("At risk of overweight",
+                        new Range(
+                                OptionalDouble.of(Double.parseDouble((String) table[i + 26]))
+                                    .getAsDouble(),
+                                OptionalDouble.of(Double.parseDouble((String) table[i + 28]))
+                                    .getAsDouble()));
+                cache.put("Overweight", new Range(
+                        OptionalDouble.of(Double.parseDouble((String) table[i + 28])).getAsDouble(),
+                        Double.MAX_VALUE));
+                actualTable.put(new Range(
+                        OptionalDouble.of(Double.parseDouble((String) table[i + 1])).getAsDouble(),
+                        OptionalDouble.of(Double.parseDouble((String) table[i + 31]))
+                            .getAsDouble()),
+                        cache);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static String getChildBodyMassIndexResults(String gender, double age,
+            double bodyMassIndex) {
+        Map<Range, Map<String, Range>> actualTable;
+        actualTable = gender.equals("F") ? childGrownTableFemale : childGrownTableMale;
+        return actualTable.entrySet()
+            .stream()
+            .filter(a -> a.getKey().contains(age))
+            .findFirst()
+            .get()
+            .getValue()
+            .entrySet()
+            .stream()
+            .filter(a -> a.getValue().contains(bodyMassIndex))
+            .findFirst()
+            .get()
+            .getKey();
     }
 
 }

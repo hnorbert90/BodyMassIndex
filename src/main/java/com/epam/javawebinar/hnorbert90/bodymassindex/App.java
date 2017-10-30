@@ -16,8 +16,9 @@ public class App {
 		System.out.println(BodyMassIndex.calculateBodyMassIndex("185millimeters", "80"));
 		System.out.println(BodyMassIndex.calculateBodyMassIndex("-185", "-80dekagram"));
 		System.out.println(BodyMassIndex.calculateBodyMassIndex("185feet", "80pound").getKey());
-		
-		
+		System.out.println(BodyMassIndex.calculateBodyMassIndex(1.85, 80,2,"Felmale"));
+		System.out.println(BodyMassIndex.calculateBodyMassIndex("185feet", "80pound",2,"fmale"));
+		System.out.println(BodyMassIndex.calculateBodyMassIndex("185feet", "80pound",12,"weafsd"));
 	}
 	
 }
