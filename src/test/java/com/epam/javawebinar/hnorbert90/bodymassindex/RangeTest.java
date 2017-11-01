@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.epam.javawebinar.hnorbert90.bodymassindex.model.Range;
+
 
 public class RangeTest {
 

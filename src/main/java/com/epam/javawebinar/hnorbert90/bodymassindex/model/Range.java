@@ -1,4 +1,4 @@
-package com.epam.javawebinar.hnorbert90.bodymassindex;
+package com.epam.javawebinar.hnorbert90.bodymassindex.model;
 
 public class Range {
 	private double min;
@@ -9,7 +9,17 @@ public class Range {
 		this.max = max;
 	}
 
-	@Override
+	
+    public double getMin() {
+        return min;
+    }
+
+    
+    public double getMax() {
+        return max;
+    }
+
+    @Override
     public String toString() {
         return "Range [min=" + min + ", max=" + max + "]";
     }
