@@ -87,7 +87,7 @@ public class BodyMassIndex {
     }
 
     private static void validateAge(double age) throws InvalidInputException {
-        if (age < 0 || age >= 120 || age <2) {
+        if (age < 2 || age >= 120) {
             throw new InvalidInputException("Please provide an age between 2 and 120.");
         }
 
