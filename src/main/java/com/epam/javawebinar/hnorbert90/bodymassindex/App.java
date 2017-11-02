@@ -8,8 +8,8 @@ import com.epam.javawebinar.hnorbert90.exception.InvalidMassUnitException;
 
 public class App {
 	public static void main(String[] args) throws InvalidLengthUnitException, InvalidMassUnitException, InvalidInputException {
-
-            System.out.println(calculateBodyMassIndex(1.75, "meter", 80, "kilogram", 15, "M"));
+           
+	    System.out.println(calculateBodyMassIndex(1.75, "meter", 80, "kilogram", 15, "M"));
 	    
 	}
 	
