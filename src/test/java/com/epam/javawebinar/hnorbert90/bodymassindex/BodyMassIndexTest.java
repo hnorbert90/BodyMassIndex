@@ -1,13 +1,13 @@
 package com.epam.javawebinar.hnorbert90.bodymassindex;
 
-import static org.junit.Assert.*;
+import static com.epam.javawebinar.hnorbert90.bodymassindex.BodyMassIndex.calculateBodyMassIndex;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import com.epam.javawebinar.hnorbert90.exception.InvalidInputException;
 import com.epam.javawebinar.hnorbert90.exception.InvalidLengthUnitException;
 import com.epam.javawebinar.hnorbert90.exception.InvalidMassUnitException;
-import static com.epam.javawebinar.hnorbert90.bodymassindex.BodyMassIndex.calculateBodyMassIndex;
 public class BodyMassIndexTest {
 
     @Test(expected = InvalidInputException.class)
@@ -57,18 +57,44 @@ public class BodyMassIndexTest {
             throws InvalidInputException, InvalidLengthUnitException, InvalidMassUnitException {
         calculateBodyMassIndex(1.75, "meter", 80, "BadMass", 15, "M");
     }
-
+    
+    @Test(expected = InvalidInputException.class)
+    public void TestCalculateBodyMassIndexFunctionNullGender()
+            throws InvalidInputException, InvalidLengthUnitException, InvalidMassUnitException {
+        calculateBodyMassIndex(1.75, "meter", 80, "kilogram", 15, null);
+    }
+    @Test(expected = InvalidInputException.class)
+    public void TestCalculateBodyMassIndexFunctionZeroMass()
+            throws InvalidInputException, InvalidLengthUnitException, InvalidMassUnitException {
+        calculateBodyMassIndex(1.75, "meter", 0, "kilogram", 15, "F");
+    }
+    @Test(expected = InvalidInputException.class)
+    public void TestCalculateBodyMassIndexFunctionZeroHeight()
+            throws InvalidInputException, InvalidLengthUnitException, InvalidMassUnitException {
+        calculateBodyMassIndex(0, "meter", 80, "kilogram", 15, "F");
+    }
+    
+    @Test()
+    public void TestCalculateBodyMassIndexFunctionForNullUnitsShouldUseMetricUnits()
+            throws InvalidInputException, InvalidLengthUnitException, InvalidMassUnitException {
+        String result = calculateBodyMassIndex(1.75, null, 80, null, 15, "M");
+        assertTrue("Expected bmi",result.contains("26,12"));
+        assertTrue("Expected category",result.contains("At risk of overweight"));
+        assertTrue("Expected weight You will need to loss",result.contains("8,38"));
+    }
+    
+    
     @Test
     public void TestCalculateBodyMassIndexFunction() throws InvalidLengthUnitException, InvalidMassUnitException, InvalidInputException {
         String result=calculateBodyMassIndex(1.75, "meter", 80, "kilogram", 15, "M");
         assertTrue("Expected bmi",result.contains("26,12"));
         assertTrue("Expected category",result.contains("At risk of overweight"));
-        assertTrue("Expected weight will have to lose",result.contains("8,38"));
+        assertTrue("Expected weight You will need to loss",result.contains("8,38"));
         
         result=calculateBodyMassIndex(1750, "millimeter", 80000, "gram", 15, "M");
         assertTrue("Expected bmi",result.contains("26,12"));
         assertTrue("Expected category",result.contains("At risk of overweight"));
-        assertTrue("Expected weight will have to lose",result.contains("8378,63"));
+        assertTrue("Expected weight You will need to loss",result.contains("8378,63"));
         
         result=calculateBodyMassIndex(6, "feet", 130, "pound", 15, "M");
         assertTrue("Expected bmi",result.contains("17,63"));

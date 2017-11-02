@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -18,25 +19,31 @@ import com.epam.javawebinar.hnorbert90.bodymassindex.model.Range;
 import com.epam.javawebinar.hnorbert90.bodymassindex.util.*;
 import com.epam.javawebinar.hnorbert90.exception.*;
 
-
-
-
 /**
- * @author Norbi
- *
+ * <br>
+ * <b>Description:</b>
+ * <br>
+ * <br>
+ * <i>The Body Mass Index (BMI) Calculator can be used to calculate BMI
+ * <br>
+ * value and corresponding weight status while taking age into consideration.<i>
+ * <br>
+ * 
+ * @author Norbert Hollay
  */
 public class BodyMassIndex {
 
+    private static LengthUnit lengthUnit;
+    private static MassUnit massUnit;
+    private final static Map<Range, Map<String, Range>> CHILD_GROWN_TABLE_MALE =
+            new HashMap<Range, Map<String, Range>>();
+    private final static Map<Range, Map<String, Range>> CHILD_GROWN_TABLE_FEMALE =
+            new HashMap<Range, Map<String, Range>>();
+    private final static ArrayList<BodyMassIndexCategory> CATEGORIES = new ArrayList<>();
     private final static double CHILD_MAX_AGE = 19.9;
-    private static DecimalFormat df = new DecimalFormat("#.##");
-    private static Map<Range, Map<String, Range>> childGrownTableMale =
-            new HashMap<Range, Map<String, Range>>();
-    private static Map<Range, Map<String, Range>> childGrownTableFemale =
-            new HashMap<Range, Map<String, Range>>();
-    public final static String BODY_MASS_INDEX_UNIT = "kg/m^2";
-    public static LengthUnit lengthUnit;
-    public static MassUnit massUnit;
-    public final static ArrayList<BodyMassIndexCategory> CATEGORIES = new ArrayList<>();
+    private final static DecimalFormat DF = new DecimalFormat("#.##");
+    private final static String BODY_MASS_INDEX_UNIT = "kg/m^2";
+
     static {
         CATEGORIES.add(new BodyMassIndexCategory("Severe Thinness", 0, 16));
         CATEGORIES.add(new BodyMassIndexCategory("Moderate Thinness", 16, 17));
@@ -49,11 +56,42 @@ public class BodyMassIndex {
         loadChildGrownTable();
     }
 
-    public static String calculateBodyMassIndex(double height, double weight,double age,String gender)
-            throws InvalidInputException, InvalidLengthUnitException, InvalidMassUnitException {
-        return calculateBodyMassIndex(height, "METER", weight, "KILOGRAM",age,gender);
+    public static ArrayList<BodyMassIndexCategory> getCategories() {
+        return CATEGORIES;
     }
 
+    public static String getBodyMassIndexUnit() {
+        return BODY_MASS_INDEX_UNIT;
+    }
+
+    /**
+     * @param height <i>(default unit in Meter)</i>
+     * @param weight <i>(default unit in Kilogram)</i>
+     * @param age
+     * @param gender <i>(Male="M", Female="F")</i>
+     * @return BMI value and corresponding weight status while taking age into consideration
+     * @throws InvalidInputException
+     * @throws InvalidLengthUnitException
+     * @throws InvalidMassUnitException
+     */
+    public static String calculateBodyMassIndex(double height, double weight, double age,
+            String gender)
+            throws InvalidInputException, InvalidLengthUnitException, InvalidMassUnitException {
+        return calculateBodyMassIndex(height, "METER", weight, "KILOGRAM", age, gender);
+    }
+
+    /**
+     * @param height <i>(default unit in Meter)</i>
+     * @param heightUnit <i>(Meter,Millimeter,Decimeter,Centimeter,Feet,Inch,Yard)</i>
+     * @param weight <i>(default unit in Kilogram)</i>
+     * @param weightUnit <i>(Kilogram,Gram,Dekagram,Pound)</i>
+     * @param age
+     * @param gender <i>(Male="M", Female="F")</i>
+     * @return BMI value and corresponding weight status while taking age into consideration
+     * @throws InvalidLengthUnitException
+     * @throws InvalidMassUnitException
+     * @throws InvalidInputException
+     */
     public static String calculateBodyMassIndex(double height, String heightUnit, double weight,
             String weightUnit, double age, String gender)
             throws InvalidLengthUnitException, InvalidMassUnitException, InvalidInputException {
@@ -75,13 +113,13 @@ public class BodyMassIndex {
     }
 
     private static void validateHeight(double height) throws InvalidInputException {
-        if (height < 0) {
+        if (height <= 0) {
             throw new InvalidInputException("Please provide positive height value.");
         }
     }
 
     private static void validateWeight(double weight) throws InvalidInputException {
-        if (weight < 0) {
+        if (weight <= 0) {
             throw new InvalidInputException("Please provide positive weight value.");
         }
     }
@@ -94,7 +132,8 @@ public class BodyMassIndex {
     }
 
     private static void validateGender(String gender) throws InvalidInputException {
-        if (!(gender.toUpperCase().equals("F") || gender.toUpperCase().equals("M"))) {
+        if (Objects.isNull(gender)
+                || !(gender.toUpperCase().equals("F") || gender.toUpperCase().equals("M"))) {
             throw new InvalidInputException("Please provide valid gender value! (F or M)");
         }
 
@@ -102,7 +141,7 @@ public class BodyMassIndex {
 
     private static void getLengthUnit(String heightUnit) throws InvalidLengthUnitException {
         try {
-            lengthUnit = !heightUnit.equals("") ? LengthUnit
+            lengthUnit = Objects.nonNull(heightUnit) && !heightUnit.equals("") ? LengthUnit
                 .valueOf(heightUnit.toUpperCase()) : LengthUnit.METER;
         } catch (IllegalArgumentException e) {
             throw new InvalidLengthUnitException();
@@ -111,7 +150,7 @@ public class BodyMassIndex {
 
     private static void getMassUnit(String weightUnit) throws InvalidMassUnitException {
         try {
-            massUnit = !weightUnit.equals("") ? MassUnit
+            massUnit = Objects.nonNull(weightUnit) && !weightUnit.equals("") ? MassUnit
                 .valueOf(weightUnit.toUpperCase()) : MassUnit.KILOGRAM;
         } catch (IllegalArgumentException e) {
             throw new InvalidMassUnitException();
@@ -124,22 +163,26 @@ public class BodyMassIndex {
         double minWeight = normal.getMin() * pow(height, 2);
         double maxWeight = normal.getMax() * pow(height, 2);
         StringBuilder sb = new StringBuilder(512);
-        sb.append("Your body mass index is: " + df.format(bodyMassIndex) + " "
+        sb.append("Your body mass index is: " + DF.format(bodyMassIndex) + " "
                 + BODY_MASS_INDEX_UNIT);
         sb.append(" (" + evalulateBodyMassIndex(bodyMassIndex) + ")");
         sb.append("\n");
         sb.append(normal.toString());
         sb.append("\n");
         sb.append("Normal BMI weight range for the height: ");
-        sb.append(ConvertToKilogram.convertBack(minWeight, massUnit) + " " + massUnit.toString().toLowerCase());
+        sb.append(ConvertToKilogram.convertBack(minWeight, massUnit) + " "
+                + massUnit.toString().toLowerCase());
         sb.append(" - ");
-        sb.append(ConvertToKilogram.convertBack(maxWeight, massUnit) + " " + massUnit.toString().toLowerCase());
+        sb.append(ConvertToKilogram.convertBack(maxWeight, massUnit) + " "
+                + massUnit.toString().toLowerCase());
         if (bodyMassIndex > normal.getMax()) {
-            sb.append("\nYou will need to loss " + df.format(ConvertToKilogram.convertBack((weight - maxWeight), massUnit)) + " "
+            sb.append("\nYou will need to loss "
+                    + DF.format(ConvertToKilogram.convertBack((weight - maxWeight), massUnit)) + " "
                     + massUnit.toString().toLowerCase() + " to reach a BMI of " + normal.getMax()
                     + BODY_MASS_INDEX_UNIT);
         } else if (bodyMassIndex < normal.getMin()) {
-            sb.append("\nYou will need to gain " + df.format(ConvertToKilogram.convertBack((minWeight - weight), massUnit)) + " "
+            sb.append("\nYou will need to gain "
+                    + DF.format(ConvertToKilogram.convertBack((minWeight - weight), massUnit)) + " "
                     + massUnit.toString().toLowerCase() + " to reach a BMI of " + normal.getMin()
                     + BODY_MASS_INDEX_UNIT);
         }
@@ -168,21 +211,27 @@ public class BodyMassIndex {
                 + " " + BODY_MASS_INDEX_UNIT);
         sb.append(" (" + category + ")");
         sb.append("\n");
-        sb.append("Normal BMI range: " + df.format(normalCategory.getMin()) + " kg/m^2 - "
-                + df.format(normalCategory.getMax()) + " kg/m 2");
+        sb.append("Normal BMI range: " + DF.format(normalCategory.getMin()) + " kg/m^2 - "
+                + DF.format(normalCategory.getMax()) + " kg/m 2");
         sb.append("\n");
         sb.append("Normal BMI weight range for the height: ");
-        sb.append(df.format(ConvertToKilogram.convertBack(minWeight, massUnit)) + " " + massUnit.toString().toLowerCase());
+        sb.append(DF.format(ConvertToKilogram.convertBack(minWeight, massUnit)) + " "
+                + massUnit.toString().toLowerCase());
         sb.append(" - ");
-        sb.append(df.format(ConvertToKilogram.convertBack(maxWeight, massUnit)) + " " + massUnit.toString().toLowerCase());
+        sb.append(DF.format(ConvertToKilogram.convertBack(maxWeight, massUnit)) + " "
+                + massUnit.toString().toLowerCase());
         if (bodyMassIndex > normalCategory.getMax()) {
-            sb.append("\nYou will need to loss " + df.format(ConvertToKilogram.convertBack((unifiedWeight - maxWeight), massUnit)) + " "
-                    + massUnit.toString().toLowerCase() + " to reach a BMI of "
-                    + df.format(normalCategory.getMax()) + BODY_MASS_INDEX_UNIT);
+            sb.append("\nYou will need to loss "
+                    + DF.format(
+                            ConvertToKilogram.convertBack((unifiedWeight - maxWeight), massUnit))
+                    + " " + massUnit.toString().toLowerCase() + " to reach a BMI of "
+                    + DF.format(normalCategory.getMax()) + BODY_MASS_INDEX_UNIT);
         } else if (bodyMassIndex < normalCategory.getMin()) {
-            sb.append("\nYou will need to gain " + df.format(ConvertToKilogram.convertBack((minWeight - unifiedWeight), massUnit)) + " "
-                    + massUnit.toString().toLowerCase() + " to reach a BMI of "
-                    + df.format(normalCategory.getMin()) + BODY_MASS_INDEX_UNIT);
+            sb.append("\nYou will need to gain "
+                    + DF.format(
+                            ConvertToKilogram.convertBack((minWeight - unifiedWeight), massUnit))
+                    + " " + massUnit.toString().toLowerCase() + " to reach a BMI of "
+                    + DF.format(normalCategory.getMin()) + BODY_MASS_INDEX_UNIT);
         }
         sb.append(".");
         return sb.toString();
@@ -197,7 +246,7 @@ public class BodyMassIndex {
             .getCategory();
     }
 
-    public static void loadChildGrownTable() {
+    private static void loadChildGrownTable() {
         String fileName = "data/CDC_data.txt";
         Map<Range, Map<String, Range>> actualTable;
 
@@ -212,7 +261,7 @@ public class BodyMassIndex {
             for (int i = 1; i < table.length - 1; i++) {
                 cache = new HashMap<String, Range>();
                 actualTable = table[i][CDCTable.GENDER.getIndex()]
-                    .equals("F") ? childGrownTableFemale : childGrownTableMale;
+                    .equals("F") ? CHILD_GROWN_TABLE_FEMALE : CHILD_GROWN_TABLE_MALE;
 
                 cache.put("Underweight", new Range(0,
                         Double.parseDouble((String) table[i][CDCTable.BMI_5.getIndex()])));
@@ -239,9 +288,9 @@ public class BodyMassIndex {
         }
     }
 
-    public static Set<Entry<String, Range>> getChildBodyMassIndexTable(String gender, double age) {
+    private static Set<Entry<String, Range>> getChildBodyMassIndexTable(String gender, double age) {
         Map<Range, Map<String, Range>> actualTable;
-        actualTable = gender.equals("F") ? childGrownTableFemale : childGrownTableMale;
+        actualTable = gender.equals("F") ? CHILD_GROWN_TABLE_FEMALE : CHILD_GROWN_TABLE_MALE;
         return actualTable.entrySet()
             .stream()
             .filter(a -> a.getKey().contains(age))

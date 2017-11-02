@@ -1,32 +1,22 @@
 package com.epam.javawebinar.hnorbert90.bodymassindex.model;
 
-public class BodyMassIndexCategory {
+public class BodyMassIndexCategory extends Range{
 
-    private final double min;
-    private final double max;
     private final String category;
-
+    /**
+     * Class for store BMI categories
+     * @param category
+     * @param min
+     * @param max
+     */
     public BodyMassIndexCategory(String category, double min, double max) {
-        this.min = min;
-        this.max = max;
+        super(min,max);
         this.category = category;
     }
 
     @Override
     public String toString() {
-        return category+" BMI range: " + min + "kg/m2 - " + max + "kg/m2";
-    }
-
-    public boolean contains(double value) {
-        return (value >= min && value < max);
-    }
-
-    public double getMin() {
-        return min;
-    }
-
-    public double getMax() {
-        return max;
+        return category+" BMI range: " + getMin() + "kg/m2 - " + getMax() + "kg/m2";
     }
 
     public String getCategory() {

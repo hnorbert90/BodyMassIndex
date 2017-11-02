@@ -2,9 +2,9 @@ package com.epam.javawebinar.hnorbert90.bodymassindex.util;
 
 public class ConvertToKilogram {
 
-     final static double POUND_TO_KILOGRAM = 0.45359237;
-     final static double GRAM_TO_KILOGRAM = 0.001;
-     final static double DEKAGRAM_TO_KILOGRAM = 0.01;
+    private final static double POUND_TO_KILOGRAM = 0.45359237;
+    private final static double GRAM_TO_KILOGRAM = 0.001;
+    private final static double DEKAGRAM_TO_KILOGRAM = 0.01;
 
     public static double convert(double value, MassUnit unit) {
         switch (unit) {
@@ -19,8 +19,9 @@ public class ConvertToKilogram {
             default:
                 return value;
         }
-        
+
     }
+
     public static double convertBack(double value, MassUnit unit) {
         switch (unit) {
             case POUND:
@@ -34,6 +35,6 @@ public class ConvertToKilogram {
             default:
                 return value;
         }
-        
+
     }
 }
